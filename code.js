@@ -14,7 +14,7 @@ function initialize(x,y, n)
 {
   var standardSize = 30;
   var width = 600;
-  var height = 400;
+  var height = 600;
   
   //alert("init");
   canv = document.getElementById("can");
@@ -153,7 +153,7 @@ function clickOn(x,y)
   var lost = false;
   if(mineStatus(x,y) && gridStatus[y*grid.count.x+x][1] == false)
   {
-    alert("LOSE :( on" + x + " " + y);
+    lose(x,y);
     lost = true;
   }
   if(!lost && gridStatus[y*grid.count.x+x][0] == false && gridStatus[y*grid.count.x+x][1] == false)
@@ -226,6 +226,20 @@ function mark(x,y)
   ctx.putImageData(imgData, grid.pos.x+grid.size*x+1, grid.pos.y+grid.size*y+1);
 }
 
+function lose(x,y)
+{
+  for(var i=0;i<mines.length;++i)
+  {
+    ctx.font=(Math.floor(grid.size*2/3)) + "px sans-serif";
+    if(mines[i][0] == x && mines[i][1] == y)
+      ctx.strokeStyle="#ff0000";
+    else
+      ctx.strokeStyle="#000000";
+    ctx.strokeText("!", grid.pos.x+grid.size*mines[i][0]+5, grid.pos.y+grid.size*mines[i][1]-10+grid.size);
+    
+  }
+}
+
 function reactToClick(ev)
 {
   ev.preventDefault();
@@ -268,6 +282,6 @@ function reactToClick(ev)
   return false;
 }
 
-window.onload = function(){initialize(10,10,10)};	
+window.onload = function(){initialize(20,20,80)};	
 document.addEventListener("click", reactToClick, false);
 document.addEventListener("contextmenu", reactToClick, false);
