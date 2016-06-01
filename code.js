@@ -6,6 +6,7 @@ var grid = {pos:{x:0,y:0}, size:0, count:{x:0,y:0}, total:{x:0,y:0}};
 var gridStatus = []; // open = [true,], close = [false,]; marked = [,true], unmarked = [,false]
 var minecount = 0;
 var hiddenColor = "#999999";
+var lockout = [];
 var revealedColor = "#CCCCCC";
 
 //              an x by y with n mines
@@ -149,14 +150,13 @@ function mineStatus(x,y)
 
 function clickOn(x,y)
 {
-  console.log(x + " " + y);
   var lost = false;
-  if(mineStatus(x,y))
+  if(mineStatus(x,y) && gridStatus[y*grid.count.x+x][1] == false)
   {
-    alert("LOSE :(");
+    alert("LOSE :( on" + x + " " + y);
     lost = true;
   }
-  if(!lost && gridStatus[y*grid.count.x+x][0] == false)
+  if(!lost && gridStatus[y*grid.count.x+x][0] == false && gridStatus[y*grid.count.x+x][1] == false)
   {
     gridStatus[y*grid.count.x+x][0] = true;
     var imgData = ctx.getImageData(grid.pos.x+grid.size*x+1, grid.pos.y+grid.size*y+1, grid.size-1, grid.size-1);
@@ -178,7 +178,7 @@ function clickOn(x,y)
 
     if(mineCount > 0)
     {
-      var numberColor = [0, "#0000ff", "#00ff00", "#ff0000", "#0000aa", "#ff8800", "#00ffff", "#aa0000", "#000000"];
+      var numberColor = [0, "#0000ff", "#33aa33", "#ff0000", "#0000aa", "#ff8800", "#00ffff", "#aa0000", "#000000"];
       ctx.font=(Math.floor(grid.size*2/3)) + "px sans-serif";
       ctx.strokeStyle=numberColor[mineCount];
       ctx.strokeText(mineCount, grid.pos.x+grid.size*x+5, grid.pos.y+grid.size*y-5+grid.size);
@@ -188,7 +188,7 @@ function clickOn(x,y)
       for(var i = 0;i<9;++i)
       {
         if(x+i%3-1 >= 0 && x+i%3-1<grid.count.x && y+Math.floor(i/3)-1 >= 0 && y+Math.floor(i/3)-1 < grid.count.y)
-          clickOn(x+i%3-1, x+Math.floor(i/3)-1);
+          clickOn(x+i%3-1, y+Math.floor(i/3)-1);
       }
     }
   }
@@ -243,11 +243,11 @@ function reactToClick(ev)
   if(mineX >= 0 && mineY >= 0 && mineX < grid.count.x && mineY < grid.count.y)
   {
     console.log("Clicked on mine " + mineX + "," + mineY);
-    if(ev.type == "click")
+    if(ev.type == "click" && ((lockout[0] == mouseX && lockout[1] == mouseY) == false))
     {
       if(mines.length == 0)
       {
-        generateMines(mineX,mineY,0);
+        generateMines(mineX,mineY,1);
         console.log(JSON.stringify(mines));
         clickOn(mineX, mineY);
       }
@@ -256,13 +256,16 @@ function reactToClick(ev)
         clickOn(mineX, mineY);
       }
     }
-    if(ev.type == "contextmenu" && mines.length > 0)
+    if(ev.type == "contextmenu")
     {
-      mark(mineX, mineY);
+      if(mines.length > 0 && gridStatus[mineY*grid.count.x+mineX][0] == false)
+        mark(mineX, mineY);
+      lockout = [mouseX, mouseY];
     }
     
   }
   
+  return false;
 }
 
 window.onload = function(){initialize(10,10,10)};	
