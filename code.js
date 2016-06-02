@@ -7,8 +7,9 @@ var gridStatus = []; // open = [true,], close = [false,]; marked = [,true], unma
 var minecount = 0;
 var hiddenColor = "#999999";
 var lockout = [];
+var numbers = [];
 var revealedColor = "#CCCCCC";
-var freeSpots = 0;
+var freeSpots = 1;
 
 //              an x by y with n mines
 function initialize(x,y, n)
@@ -31,7 +32,10 @@ function initialize(x,y, n)
   grid.total.y = height;
   minecount = n;
   for(var i=0;i<x*y;++i)
+  {
+    numbers.push(-1);
     gridStatus.push(new Array(false,false));
+  }
 
   // find the size
   var equalWidth = Math.floor(width/x);
@@ -124,7 +128,7 @@ function generateMines(startx,starty,free)
       possibleValues[max] = store;
       var rrow = Math.floor(store/grid.count.x);
       var rcol = Math.floor(store%grid.count.x);
-      console.log(rcol + " " + rrow + "(" + store + ")");
+      //console.log(rcol + " " + rrow + "(" + store + ")");
       if((rcol >= startx - free && rcol <= startx + free) && (rrow >= starty - free && rrow <= starty + free))
       {
         --i;
@@ -132,11 +136,11 @@ function generateMines(startx,starty,free)
       else
       {
         randomValues.push(r);
-        mines.push(new Array(r%grid.count.x, Math.floor(r/grid.count.x)));
+        mines.push(new Array(store%grid.count.x, Math.floor(store/grid.count.x)));
       }
       max -= 1;
     }
-    console.log(JSON.stringify(possibleValues));
+    //console.log(JSON.stringify(possibleValues));
   }
 
 
@@ -147,7 +151,10 @@ function mineStatus(x,y)
   for(var i =0;i<mines.length;++i)
   {
     if(mines[i][0] == x && mines[i][1] == y)
+    {
+      //console.log(x + "," + y + ":" + i)
       return true;
+    }
   }
   return false
 }
@@ -180,6 +187,7 @@ function clickOn(x,y)
     }
     ctx.putImageData(imgData, grid.pos.x+grid.size*x+1, grid.pos.y+grid.size*y+1);
 
+    numbers[grid.count.x*y+x] = mineCount;
     if(mineCount > 0)
     {
       var numberColor = [0, "#0000ff", "#33aa33", "#ff0000", "#0000aa", "#ff8800", "#00ffff", "#aa0000", "#000000"];
@@ -247,7 +255,7 @@ function lose(x,y)
 function reactToClick(ev)
 {
   ev.preventDefault();
-  console.log(ev.type);
+  //console.log(ev.type);
   var posX = can.offsetLeft;
   var posY = can.offsetTop;
   var width = 300;
@@ -260,13 +268,13 @@ function reactToClick(ev)
 
   if(mineX >= 0 && mineY >= 0 && mineX < grid.count.x && mineY < grid.count.y)
   {
-    console.log("Clicked on mine " + mineX + "," + mineY);
+    //console.log("Clicked on mine " + mineX + "," + mineY);
     if(ev.type == "click" && ((lockout[0] == mouseX && lockout[1] == mouseY) == false))
     {
       if(mines.length == 0)
       {
         generateMines(mineX,mineY,freeSpots);
-        console.log(JSON.stringify(mines));
+        //console.log(JSON.stringify(mines));
         clickOn(mineX, mineY);
       }
       else
