@@ -8,6 +8,7 @@ var minecount = 0;
 var hiddenColor = "#999999";
 var lockout = [];
 var revealedColor = "#CCCCCC";
+var freeSpots = 0;
 
 //              an x by y with n mines
 function initialize(x,y, n)
@@ -120,8 +121,10 @@ function generateMines(startx,starty,free)
       var r = Math.floor(Math.random()*max);
       var store = possibleValues[r];
       possibleValues[r] = possibleValues[max];
-      var rrow = Math.floor(r/grid.count.x);
-      var rcol = Math.floor(r%grid.count.x);
+      possibleValues[max] = store;
+      var rrow = Math.floor(store/grid.count.x);
+      var rcol = Math.floor(store%grid.count.x);
+      console.log(rcol + " " + rrow + "(" + store + ")");
       if((rcol >= startx - free && rcol <= startx + free) && (rrow >= starty - free && rrow <= starty + free))
       {
         --i;
@@ -133,6 +136,7 @@ function generateMines(startx,starty,free)
       }
       max -= 1;
     }
+    console.log(JSON.stringify(possibleValues));
   }
 
 
@@ -261,7 +265,7 @@ function reactToClick(ev)
     {
       if(mines.length == 0)
       {
-        generateMines(mineX,mineY,1);
+        generateMines(mineX,mineY,freeSpots);
         console.log(JSON.stringify(mines));
         clickOn(mineX, mineY);
       }
@@ -282,6 +286,6 @@ function reactToClick(ev)
   return false;
 }
 
-window.onload = function(){initialize(20,20,80)};	
+window.onload = function(){initialize(4, 4, 3 )};	
 document.addEventListener("click", reactToClick, false);
 document.addEventListener("contextmenu", reactToClick, false);
