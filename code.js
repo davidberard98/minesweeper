@@ -9,7 +9,7 @@ var hiddenColor = "#999999";
 var lockout = [];
 var numbers = [];
 var revealedColor = "#CCCCCC";
-var freeSpots = 1;
+var freeSpots = 0;
 
 //              an x by y with n mines
 function initialize(x,y, n)
