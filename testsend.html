@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript">
+function send()
+{
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (xhttp.readyState == 4 && xhttp.status == 200) {
+      document.getElementById("response").innerHTML = xhttp.responseText;
+    }
+  };
+  xhttp.open("POST", "accept.php", true);
+  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+  xhttp.send("fname=Henry&lname=Ford");
+}
+</script>
+</head>
+<body>
+<button onClick="send()">send</button><br />
+<div id="response"></div>
+</body>
+</html>

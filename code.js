@@ -9,14 +9,26 @@ var hiddenColor = "#999999";
 var lockout = [];
 var numbers = [];
 var revealedColor = "#CCCCCC";
-var freeSpots = 0;
+var freeSpots = 1;
+var suspend = false;
+var username = "";
 
 //              an x by y with n mines
 function initialize(x,y, n)
 {
+
+  suspend = false;
+  document.getElementById("notes").innerHTML = "";
+  mines = [];
+  scorecount = 0;
+  grid = {pos:{x:0,y:0}, size:0, count:{x:0,y:0}, total:{x:0,y:0}};
+  gridStatus = [];
+  lockout = [];
+  numbers = [];
+
   var standardSize = 30;
   var width = 600;
-  var height = 600;
+  var height = 460;
   
   //alert("init");
   canv = document.getElementById("can");
@@ -58,11 +70,7 @@ function initialize(x,y, n)
   var begin = document.createElement("div");
   var end = document.createElement("div");
   scorecount = document.createElement("div");
-  begin.innerHTML = "<br /><br /><br /><br />";
-  end.innerHTML = "<br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />";
-  document.body.insertBefore(begin, canv);
   document.body.appendChild(scorecount);
-  document.body.appendChild(end);
   
 }
 
@@ -203,6 +211,9 @@ function clickOn(x,y)
           clickOn(x+i%3-1, y+Math.floor(i/3)-1);
       }
     }
+
+    if(isWin())
+      win();
   }
 }
 
@@ -240,6 +251,10 @@ function mark(x,y)
 
 function lose(x,y)
 {
+  suspend = true;
+  var enotes = document.getElementById("notes");
+  enotes.innerHTML = "<span style='font-weight:900;color:#aa0000;font-size:1.8em;'>Sorry, You lost.</span>";
+  enotes.innerHTML += "&nbsp; &nbsp; &nbsp; <a href='javascript:restart();'>PLAY AGAIN</a>";
   for(var i=0;i<mines.length;++i)
   {
     ctx.font=(Math.floor(grid.size*2/3)) + "px sans-serif";
@@ -250,50 +265,104 @@ function lose(x,y)
     ctx.strokeText("!", grid.pos.x+grid.size*mines[i][0]+5, grid.pos.y+grid.size*mines[i][1]-10+grid.size);
     
   }
+  send(false, x, y);
+}
+
+function isWin()
+{
+  var foundProb = false;
+  for(var i=0;i<grid.count.x;++i)
+  {
+    for(var j=0;j<grid.count.y;++j)
+    {
+      var num = j*grid.count.x + i;
+      if(gridStatus[num][0] == false && mineStatus(i,j) == false)
+      {
+        foundProb = true;
+        break;
+      }
+    }
+    if(foundProb)
+      break;
+  }
+  return !foundProb;
+}
+
+function win()
+{
+  suspend = true;
+  var enotes = document.getElementById("notes");
+  enotes.innerHTML = "<span style='font-weight:900;color:#007700;font-size:1.8em;'>Congrats! You win!</span>";
+  enotes.innerHTML += "&nbsp; &nbsp; &nbsp; <a href='javascript:restart();'>PLAY AGAIN</a>";
+  send(true, -1, -1);
 }
 
 function reactToClick(ev)
 {
-  ev.preventDefault();
-  //console.log(ev.type);
-  var posX = can.offsetLeft;
-  var posY = can.offsetTop;
-  var width = 300;
-  var height = 150;
-  var mouseX = ev.clientX + window.scrollX;
-  var mouseY = ev.clientY + window.scrollY;
-
-  var mineX = Math.floor((mouseX - (grid.pos.x+posX))/grid.size);
-  var mineY = Math.floor((mouseY - (grid.pos.y+posY))/grid.size);
-
-  if(mineX >= 0 && mineY >= 0 && mineX < grid.count.x && mineY < grid.count.y)
+  if(!suspend)
   {
-    //console.log("Clicked on mine " + mineX + "," + mineY);
-    if(ev.type == "click" && ((lockout[0] == mouseX && lockout[1] == mouseY) == false))
-    {
-      if(mines.length == 0)
-      {
-        generateMines(mineX,mineY,freeSpots);
-        //console.log(JSON.stringify(mines));
-        clickOn(mineX, mineY);
-      }
-      else
-      {
-        clickOn(mineX, mineY);
-      }
-    }
-    if(ev.type == "contextmenu")
-    {
-      if(mines.length > 0 && gridStatus[mineY*grid.count.x+mineX][0] == false)
-        mark(mineX, mineY);
-      lockout = [mouseX, mouseY];
-    }
-    
-  }
+    ev.preventDefault();
+    //console.log(ev.type);
+    var posX = can.offsetLeft;
+    var posY = can.offsetTop;
+    var width = 300;
+    var height = 150;
+    var mouseX = ev.clientX + window.scrollX;
+    var mouseY = ev.clientY + window.scrollY;
   
+    var mineX = Math.floor((mouseX - (grid.pos.x+posX))/grid.size);
+    var mineY = Math.floor((mouseY - (grid.pos.y+posY))/grid.size);
+  
+    if(mineX >= 0 && mineY >= 0 && mineX < grid.count.x && mineY < grid.count.y)
+    {
+      //console.log("Clicked on mine " + mineX + "," + mineY);
+      if(ev.type == "click" && ((lockout[0] == mouseX && lockout[1] == mouseY) == false))
+      {
+        if(mines.length == 0)
+        {
+          generateMines(mineX,mineY,freeSpots);
+          //console.log(JSON.stringify(mines));
+          clickOn(mineX, mineY);
+        }
+        else
+        {
+          clickOn(mineX, mineY);
+        }
+      }
+      if(ev.type == "contextmenu")
+      {
+        if(mines.length > 0 && gridStatus[mineY*grid.count.x+mineX][0] == false)
+          mark(mineX, mineY);
+        lockout = [mouseX, mouseY];
+      }
+      
+    }
+  
+  }
   return false;
 }
 
-window.onload = function(){initialize(4, 4, 3 )};	
+function restart()
+{
+  console.log("restart");
+  initialize(15,15,50);
+}
+
+function start()
+{
+  document.getElementById("notes").innerHTML = "Enter a name/username/identifier (to be used for scores)<br />";
+  document.getElementById("notes").innerHTML += "<input type='text' id='userid' /><button onclick='gofirst()'>Go!</button>";
+}
+
+function gofirst()
+{
+  if(document.getElementById("userid").value != "")
+  {
+    username = document.getElementById("userid").value;
+    restart();
+  }
+}
+
+window.onload = start;
 document.addEventListener("click", reactToClick, false);
 document.addEventListener("contextmenu", reactToClick, false);
