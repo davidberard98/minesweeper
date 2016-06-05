@@ -359,6 +359,16 @@ function gofirst()
   if(document.getElementById("userid").value != "")
   {
     username = document.getElementById("userid").value;
+    for(var i=0;i<username.length;++i)
+    {
+      var num = username.charCodeAt(i);
+      if(!((num >= 48 && num <= 57) || (num >= 65 && num <= 122) || num == 46))
+      {
+        username = username.slice(0, i) + username.slice(i+1, username.length);
+        --i;
+      }
+    }
+    alert(username);
     restart();
   }
 }
