@@ -3,6 +3,8 @@ $gridx = 0;
 $gridy = 0;
 $minecount = 0;
 $mines = Array();
+$gridStatus = Array();
+// mine, click, mark
 
 function setup($rawdata)
 {
@@ -31,7 +33,7 @@ function makeMines($data)
 
 function generateMines($startx,$starty,$free)
 {
-  global $gridx, $gridy, $minecount, $mines;
+  global $gridx, $gridy, $minecount, $mines, $gridStatus;
 
   if(count($mines) == 0)
   {

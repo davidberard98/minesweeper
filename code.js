@@ -1,5 +1,6 @@
 var canv;
 var ctx;
+var mines = []; 
 var scorecount;
 var grid = {pos:{x:0,y:0}, size:0, count:{x:0,y:0}, total:{x:0,y:0}};
 var gridStatus = []; // open = [true,], close = [false,]; marked = [,true], unmarked = [,false]
@@ -12,29 +13,6 @@ var freeSpots = 1;
 var suspend = false;
 var username = "";
 var sessId = "";
-
-function gofirst()
-{
-
-var mines = []; 
-  if(document.getElementById("userid").value != "")
-  {
-    username = document.getElementById("userid").value;
-    for(var i=0;i<username.length;++i)
-    {
-      var num = username.charCodeAt(i);
-      if(!((num >= 48 && num <= 57) || (num >= 65 && num <= 122) || num == 46))
-      {
-        var end = "";
-        if(username.length > i+1)
-          end = username.slice(i+1, username.length);
-        username = username.slice(0, i) + end;
-        --i;
-      }
-    }
-    setTimeout(keepAlive, 3000);
-    restart();
-  }
 
 //              an x by y with n mines
 function initialize(x,y,n)
@@ -174,8 +152,6 @@ function generateMines(startx,starty,free)
     }
     //console.log(JSON.stringify(possibleValues));
   }
-
-
 }
 
 function mineStatus(x,y)
@@ -323,7 +299,6 @@ function win()
 
 function reactToClick(ev)
 {
-  alert("hi");
   if(!suspend)
   {
     ev.preventDefault();
@@ -373,6 +348,27 @@ function restart()
   initialize(15,15,50);
 }
 
+function gofirst()
+{
+
+  if(document.getElementById("userid").value != "")
+  {
+    username = document.getElementById("userid").value;
+    for(var i=0;i<username.length;++i)
+    {
+      var num = username.charCodeAt(i);
+      if(!((num >= 48 && num <= 57) || (num >= 65 && num <= 122) || num == 46))
+      {
+        var end = "";
+        if(username.length > i+1)
+          end = username.slice(i+1, username.length);
+        username = username.slice(0, i) + end;
+        --i;
+      }
+    }
+    setTimeout(keepAlive, 3000);
+    restart();
+  }
 
 }
 
@@ -383,5 +379,5 @@ function start()
 }
 
 window.onload = start;
-document.addEventListener("click", gofirst.reactToClick, false);
-document.addEventListener("contextmenu", gofirst.reactToClick, false);
+document.addEventListener("click", reactToClick, false);
+document.addEventListener("contextmenu", reactToClick, false);
