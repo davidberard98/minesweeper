@@ -1,7 +1,6 @@
 var canv;
 var ctx;
 var scorecount;
-var mines = []; 
 var grid = {pos:{x:0,y:0}, size:0, count:{x:0,y:0}, total:{x:0,y:0}};
 var gridStatus = []; // open = [true,], close = [false,]; marked = [,true], unmarked = [,false]
 var minecount = 0;
@@ -12,9 +11,33 @@ var revealedColor = "#CCCCCC";
 var freeSpots = 1;
 var suspend = false;
 var username = "";
+var sessId = "";
+
+function gofirst()
+{
+
+var mines = []; 
+  if(document.getElementById("userid").value != "")
+  {
+    username = document.getElementById("userid").value;
+    for(var i=0;i<username.length;++i)
+    {
+      var num = username.charCodeAt(i);
+      if(!((num >= 48 && num <= 57) || (num >= 65 && num <= 122) || num == 46))
+      {
+        var end = "";
+        if(username.length > i+1)
+          end = username.slice(i+1, username.length);
+        username = username.slice(0, i) + end;
+        --i;
+      }
+    }
+    setTimeout(keepAlive, 3000);
+    restart();
+  }
 
 //              an x by y with n mines
-function initialize(x,y, n)
+function initialize(x,y,n)
 {
 
   suspend = false;
@@ -49,6 +72,7 @@ function initialize(x,y, n)
     gridStatus.push(new Array(false,false));
   }
 
+  sendUsername(username);
   // find the size
   var equalWidth = Math.floor(width/x);
   var equalHeight = Math.floor(height/y);
@@ -299,6 +323,7 @@ function win()
 
 function reactToClick(ev)
 {
+  alert("hi");
   if(!suspend)
   {
     ev.preventDefault();
@@ -348,31 +373,15 @@ function restart()
   initialize(15,15,50);
 }
 
+
+}
+
 function start()
 {
   document.getElementById("notes").innerHTML = "Enter a name/username/identifier (to be used for scores)<br />";
   document.getElementById("notes").innerHTML += "<input type='text' id='userid' /><button onclick='gofirst()'>Go!</button>";
 }
 
-function gofirst()
-{
-  if(document.getElementById("userid").value != "")
-  {
-    username = document.getElementById("userid").value;
-    for(var i=0;i<username.length;++i)
-    {
-      var num = username.charCodeAt(i);
-      if(!((num >= 48 && num <= 57) || (num >= 65 && num <= 122) || num == 46))
-      {
-        username = username.slice(0, i) + username.slice(i+1, username.length);
-        --i;
-      }
-    }
-    alert(username);
-    restart();
-  }
-}
-
 window.onload = start;
-document.addEventListener("click", reactToClick, false);
-document.addEventListener("contextmenu", reactToClick, false);
+document.addEventListener("click", gofirst.reactToClick, false);
+document.addEventListener("contextmenu", gofirst.reactToClick, false);

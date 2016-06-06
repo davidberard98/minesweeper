@@ -51,3 +51,48 @@ function send(win, x, y)
   xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
   xhttp.send("type=" + TYPE + "&data=" + output);
 }
+function sendUsername(usern)
+{
+  var TYPE = "setUser";
+  
+  var otherdata = usern + "|" + grid.count.x + "|" + grid.count.y + "|" + minecount;
+  
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (xhttp.readyState == 4 && xhttp.status == 200) {
+//      document.getElementById("response").innerHTML = xhttp.responseText;
+      console.log("userset: " + xhttp.responseText);
+    }
+  };
+  xhttp.open("POST", "accept.php", true);
+  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+  xhttp.send("type=" + TYPE + "&data=" + otherdata);
+}
+function makeMines(x,y,free)
+{
+  var TYPE = "makeMines";
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (xhttp.readyState == 4 && xhttp.status == 200) {
+//      document.getElementById("response").innerHTML = xhttp.responseText;
+      console.log("userset: " + xhttp.responseText);
+    }
+  };
+  xhttp.open("POST", "accept.php", true);
+  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+  xhttp.send("type=" + TYPE + "&data=" + x + "|" + y + "|" + free);
+}
+function keepAlive()
+{
+  var TYPE = "keepalive";
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (xhttp.readyState == 4 && xhttp.status == 200) {
+//      document.getElementById("response").innerHTML = xhttp.responseText;
+      setTimeout(keepAlive, 3000);
+    }
+  };
+  xhttp.open("POST", "accept.php", true);
+  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+  xhttp.send("type=" + TYPE + "&data=" + sessId);
+}
