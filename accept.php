@@ -25,6 +25,8 @@ function filterData($data)
 if(isset($_POST['type']))
 {
   session_start();
+    if($_POST['type'] != "click")
+      echo $_POST['type'] . " " . $_SESSION['id'];
   include("game.php");
   if(isset($_SESSION['last']) && time() - intval($_SESSION['last']) <= 10)
   {
@@ -41,24 +43,40 @@ if(isset($_POST['type']))
         file_put_contents($filename, $content);
       }
     }
+    else if($_POST['type'] == "sendmark")
+    {
+      if(isset($_POST['data']))
+      {
+        mark($_POST['data']);
+      }
+    }
     else if($_POST['type'] == "makeMines")
     {
-      if(isset($_SESSION['data']))
+      if(isset($_POST['data']))
       {
         load();
-        makeMines($_SESSION['data']);
+        makeMines($_POST['data']);
       }
     }
     else if($_POST['type'] == "click")
     {
       if(isset($_POST['data']))
+      {
+        load();
         clickOn($_POST['data']);
+      }
     }
     else if($_POST['type'] == "setup")
     {
 //      echo "SETTING USER TO " . filterData($_POST['data']) . " where id=" . $_SESSION['id'] . ".";
-      if(isset($_SESSION['id']) && !isset($_SESSION['username']))
-        setup($_POST['data']);
+      echo "setup attempt";
+      if(isset($_SESSION['id']))
+      {
+        if(isset($_SESSION['username']))
+          setup($_POST['data'], false);
+        else
+          setup($_POST['data'], true);
+      }
     }
     else if($_POST['type'] == "keepalive")
     {

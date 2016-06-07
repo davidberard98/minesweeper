@@ -53,7 +53,7 @@ function send(win, x, y)
 }
 function sendUsername(usern)
 {
-  var TYPE = "setUser";
+  var TYPE = "setup";
   
   var otherdata = usern + "|" + grid.count.x + "|" + grid.count.y + "|" + minecount;
   
@@ -75,29 +75,63 @@ function makeMines(x,y,free)
   xhttp.onreadystatechange = function() {
     if (xhttp.readyState == 4 && xhttp.status == 200) {
 //      document.getElementById("response").innerHTML = xhttp.responseText;
-      console.log("userset: " + xhttp.responseText);
+      console.log("mines Generated!: " + xhttp.responseText);
+      minesGenerated = true;
+      suspend = false;
+      phpClick(x, y, true);
     }
   };
+  suspend = true;
   xhttp.open("POST", "accept.php", true);
   xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
   xhttp.send("type=" + TYPE + "&data=" + x + "|" + y + "|" + free);
 }
-function phpClick(x,y)
+function sendMark(x,y)
+{
+  var TYPE = "sendmark";
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (xhttp.readyState == 4 && xhttp.status == 200) {
+//      document.getElementById("response").innerHTML = xhttp.responseText;
+      console.log("marked! " + xhttp.responseText);
+      if(aiExists)
+        startAI();
+    }
+  };
+  xhttp.open("POST", "accept.php", true);
+  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+  xhttp.send("type=" + TYPE + "&data=" + x + "|" + y);
+}
+function phpClick(x,y,first)
 {
   var TYPE = "click";
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (xhttp.readyState == 4 && xhttp.status == 200) {
 //      document.getElementById("response").innerHTML = xhttp.responseText;
-      if(xhttp.responseText == "mine")
+      console.log("click result:" + xhttp.responseText);
+      var key = xhttp.responseText.slice(0,3);
+      if(key == "min")
       {
-        clickOn(x,y,true);
+        //clickOn(x,y,true);
+        var alldata = JSON.parse(xhttp.responseText.slice(3));
+        lose(x,y,alldata);
+        suspend = true;
       }
       else
       {
-        clickOn(x,y,false);
+        //clickOn(x,y,false);
+        var newdata = JSON.parse(xhttp.responseText.slice(3));
+        for(var i=0;i<newdata.length;++i)
+        {
+          clearBox(newdata[i][0], newdata[i][1], newdata[i][2]);
+        }
+        suspend = false;
       }
-      suspend = false;
+      if(isWin())
+        win();
+      if(aiExists)
+        startAI();
     }
   };
   suspend = true;

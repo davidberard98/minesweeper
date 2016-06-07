@@ -13,6 +13,9 @@ var freeSpots = 1;
 var suspend = false;
 var username = "";
 var sessId = "";
+var minesGenerated = false;
+var aiExists = false;
+var hasFinished = false;
 
 //              an x by y with n mines
 function initialize(x,y,n)
@@ -26,6 +29,8 @@ function initialize(x,y,n)
   gridStatus = [];
   lockout = [];
   numbers = [];
+  minesGenerated = false;
+  hasFinished = false;
 
   var standardSize = 30;
   var width = 600;
@@ -169,16 +174,9 @@ function mineStatus(x,y)
 
 function clearBox(x,y,num)
 {
+    numbers[x+grid.count.x*y] = num;
+    gridStatus[x+grid.count.x*y][0] = true;
     var imgData = ctx.getImageData(grid.pos.x+grid.size*x+1, grid.pos.y+grid.size*y+1, grid.size-1, grid.size-1);
-    var mineCount = 0;
-    for(var i=-1;i<=1;++i)
-    {
-      for(var j=-1;j<=1;++j)
-      {
-        if(x+i >= 0 && x+i < grid.count.x && y+j >= 0 && y+j < grid.count.y && mineStatus(x+i, y+j))
-          ++mineCount;
-      }
-    }
     for(var i = 0;i<imgData.data.length;++i)
     {
       if(i%4 != 3)
@@ -186,13 +184,12 @@ function clearBox(x,y,num)
     }
     ctx.putImageData(imgData, grid.pos.x+grid.size*x+1, grid.pos.y+grid.size*y+1);
 
-    numbers[grid.count.x*y+x] = mineCount;
-    if(mineCount > 0)
+    if(num > 0)
     {
       var numberColor = [0, "#0000ff", "#33aa33", "#ff0000", "#0000aa", "#ff8800", "#00ffff", "#aa0000", "#000000"];
       ctx.font=(Math.floor(grid.size*2/3)) + "px sans-serif";
-      ctx.strokeStyle=numberColor[mineCount];
-      ctx.strokeText(mineCount, grid.pos.x+grid.size*x+5, grid.pos.y+grid.size*y-5+grid.size);
+      ctx.strokeStyle=numberColor[num];
+      ctx.strokeText(num, grid.pos.x+grid.size*x+5, grid.pos.y+grid.size*y-5+grid.size);
     }
 }
 
@@ -200,7 +197,7 @@ function clickOn(x,y,lost)
 {
   if(lost == true)
   {
-    lose(x,y);
+    //lose(x,y);
   }
   if(!lost && gridStatus[y*grid.count.x+x][0] == false && gridStatus[y*grid.count.x+x][1] == false)
   {
@@ -276,47 +273,53 @@ function mark(x,y)
   ctx.putImageData(imgData, grid.pos.x+grid.size*x+1, grid.pos.y+grid.size*y+1);
 }
 
-function lose(x,y)
+function lose(x,y,alldata)
 {
+  clearBox(x,y,0);
+  hasFinished = true;
   suspend = true;
   var enotes = document.getElementById("notes");
   enotes.innerHTML = "<span style='font-weight:900;color:#aa0000;font-size:1.8em;'>Sorry, You lost.</span>";
   enotes.innerHTML += "&nbsp; &nbsp; &nbsp; <a href='javascript:restart();'>PLAY AGAIN</a>";
-  for(var i=0;i<mines.length;++i)
+  for(var i=0;i<alldata.length;++i)
   {
-    ctx.font=(Math.floor(grid.size*2/3)) + "px sans-serif";
-    if(mines[i][0] == x && mines[i][1] == y)
-      ctx.strokeStyle="#ff0000";
-    else
-      ctx.strokeStyle="#000000";
-    ctx.strokeText("!", grid.pos.x+grid.size*mines[i][0]+5, grid.pos.y+grid.size*mines[i][1]-10+grid.size);
+    if(alldata[i][2] == true)
+    {
+      ctx.font=(Math.floor(grid.size*2/3)) + "px sans-serif";
+      if(i%grid.count.x == x && Math.floor(i/grid.count.x) == y)
+        ctx.strokeStyle="#ff0000";
+      else
+        ctx.strokeStyle="#000000";
+      ctx.strokeText("!", grid.pos.x+grid.size*(i%grid.count.x)+5, grid.pos.y+grid.size*Math.floor(i/grid.count.x)-10+grid.size);
+    }
     
   }
-  send(false, x, y);
+//  send(false, x, y);
 }
 
 function isWin()
 {
   var foundProb = false;
+  var countHidden = 0;
   for(var i=0;i<grid.count.x;++i)
   {
     for(var j=0;j<grid.count.y;++j)
     {
       var num = j*grid.count.x + i;
-      if(gridStatus[num][0] == false && mineStatus(i,j) == false)
+      if(gridStatus[num][0] == false)
       {
-        foundProb = true;
-        break;
+        ++countHidden;
       }
     }
-    if(foundProb)
-      break;
   }
-  return !foundProb;
+  if(countHidden == minecount)
+    return true;
+  return false;
 }
 
 function win()
 {
+  hasFinished = true;
   suspend = true;
   var enotes = document.getElementById("notes");
   enotes.innerHTML = "<span style='font-weight:900;color:#007700;font-size:1.8em;'>Congrats! You win!</span>";
@@ -345,21 +348,26 @@ function reactToClick(ev)
       //console.log("Clicked on mine " + mineX + "," + mineY);
       if(ev.type == "click" && ((lockout[0] == mouseX && lockout[1] == mouseY) == false))
       {
-        if(mines.length == 0)
+        if(minesGenerated == false)
         {
-          generateMines(mineX,mineY,freeSpots);
+          makeMines(mineX,mineY,freeSpots);
+//          generateMines(mineX,mineY,freeSpots);
           //console.log(JSON.stringify(mines));
-          clickOn(mineX, mineY);
+//          clickOn(mineX, mineY);
         }
         else
         {
-          clickOn(mineX, mineY);
+          phpClick(mineX,mineY);
+          //clickOn(mineX, mineY);
         }
       }
       if(ev.type == "contextmenu")
       {
-        if(mines.length > 0 && gridStatus[mineY*grid.count.x+mineX][0] == false)
+        if(minesGenerated && gridStatus[mineY*grid.count.x+mineX][0] == false)
+        {
+          sendMark(mineX, mineY);
           mark(mineX, mineY);
+        }
         lockout = [mouseX, mouseY];
       }
       
@@ -372,7 +380,7 @@ function reactToClick(ev)
 function restart()
 {
   console.log("restart");
-  initialize(15,15,50);
+  initialize(15,15,40);
 }
 
 function gofirst()
