@@ -49,6 +49,11 @@ if(isset($_POST['type']))
         makeMines($_SESSION['data']);
       }
     }
+    else if($_POST['type'] == "click")
+    {
+      if(isset($_POST['data']))
+        clickOn($_POST['data']);
+    }
     else if($_POST['type'] == "setup")
     {
 //      echo "SETTING USER TO " . filterData($_POST['data']) . " where id=" . $_SESSION['id'] . ".";

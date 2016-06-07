@@ -82,6 +82,29 @@ function makeMines(x,y,free)
   xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
   xhttp.send("type=" + TYPE + "&data=" + x + "|" + y + "|" + free);
 }
+function phpClick(x,y)
+{
+  var TYPE = "click";
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (xhttp.readyState == 4 && xhttp.status == 200) {
+//      document.getElementById("response").innerHTML = xhttp.responseText;
+      if(xhttp.responseText == "mine")
+      {
+        clickOn(x,y,true);
+      }
+      else
+      {
+        clickOn(x,y,false);
+      }
+      suspend = false;
+    }
+  };
+  suspend = true;
+  xhttp.open("POST", "accept.php", true);
+  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+  xhttp.send("type=" + TYPE + "&data=" + x + "|" + y);
+}
 function keepAlive()
 {
   var TYPE = "keepalive";

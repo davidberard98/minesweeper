@@ -167,13 +167,40 @@ function mineStatus(x,y)
   return false
 }
 
-function clickOn(x,y)
+function clearBox(x,y,num)
 {
-  var lost = false;
-  if(mineStatus(x,y) && gridStatus[y*grid.count.x+x][1] == false)
+    var imgData = ctx.getImageData(grid.pos.x+grid.size*x+1, grid.pos.y+grid.size*y+1, grid.size-1, grid.size-1);
+    var mineCount = 0;
+    for(var i=-1;i<=1;++i)
+    {
+      for(var j=-1;j<=1;++j)
+      {
+        if(x+i >= 0 && x+i < grid.count.x && y+j >= 0 && y+j < grid.count.y && mineStatus(x+i, y+j))
+          ++mineCount;
+      }
+    }
+    for(var i = 0;i<imgData.data.length;++i)
+    {
+      if(i%4 != 3)
+        imgData.data[i] = 153;
+    }
+    ctx.putImageData(imgData, grid.pos.x+grid.size*x+1, grid.pos.y+grid.size*y+1);
+
+    numbers[grid.count.x*y+x] = mineCount;
+    if(mineCount > 0)
+    {
+      var numberColor = [0, "#0000ff", "#33aa33", "#ff0000", "#0000aa", "#ff8800", "#00ffff", "#aa0000", "#000000"];
+      ctx.font=(Math.floor(grid.size*2/3)) + "px sans-serif";
+      ctx.strokeStyle=numberColor[mineCount];
+      ctx.strokeText(mineCount, grid.pos.x+grid.size*x+5, grid.pos.y+grid.size*y-5+grid.size);
+    }
+}
+
+function clickOn(x,y,lost)
+{
+  if(lost == true)
   {
     lose(x,y);
-    lost = true;
   }
   if(!lost && gridStatus[y*grid.count.x+x][0] == false && gridStatus[y*grid.count.x+x][1] == false)
   {
